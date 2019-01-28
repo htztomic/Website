@@ -1,0 +1,29 @@
+const mongoose = require('mongoose');
+
+const GearSchema = new mongoose.Schema({
+  gearName: {
+    type: String,
+    default: ''
+  },
+  gearType: {
+    type: String,
+    default: ''
+  },
+  gearPrice: {
+    type: String,
+  },
+  timestamp:{
+  	type: Date,
+  	default: Date.now()
+  },
+  removed:{
+    type:Boolean,
+    default:false
+  },
+  checkedOut: {
+  	type: Boolean,
+  	default: false		
+  }
+});
+
+module.exports = mongoose.model('Gear', GearSchema);

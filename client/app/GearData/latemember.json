@@ -1,0 +1,12 @@
+{
+	"firstName":"",
+	"lastName":"",
+	"email":"",
+	"phoneNumber":"",
+	"gearReturnDate":"",
+	"ccNumber":"",
+	"ccSecurityNumber":"",
+	"ccExpMonth":"",
+	"ccExpYear":"",
+	"gears":""
+}

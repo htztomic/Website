@@ -1,108 +1,169 @@
 import React, { Component } from 'react';
 import 'whatwg-fetch';
+import {getFromStorage, setInStorage} from '../../utils/storage';
+import styles from '../../styles/homeStyle.scss';
+import CssModules from 'react-css-modules';
 
 class Home extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      counters: []
+      isLoading: true,
+      token: '',
+      signInError: '',
+      signInEmail: '',
+      listItem:'',
+      signInPass: '',
+      counter:[]
     };
+    this.onTextBoxChangeSignUpEmail = this.onTextBoxChangeSignUpEmail.bind(this);
+    this.onTextBoxChangeSignUpPass = this.onTextBoxChangeSignUpPass.bind(this);
+    this.onClickSignIn = this.onClickSignIn.bind(this);
 
-    this.newCounter = this.newCounter.bind(this);
-    this.incrementCounter = this.incrementCounter.bind(this);
-    this.decrementCounter = this.decrementCounter.bind(this);
-    this.deleteCounter = this.deleteCounter.bind(this);
-
-    this._modifyCounter = this._modifyCounter.bind(this);
   }
-
   componentDidMount() {
-    fetch('/api/counters')
-      .then(res => res.json())
-      .then(json => {
-        this.setState({
-          counters: json
+    const obj = getFromStorage("chaos_website");
+    if (obj && obj.token) {
+      const token = obj.token;
+      fetch('/api/verify?token=' + token)
+        .then(res => res.json())
+        .then(json => {
+          if (json.success) {
+            const gearData = require('../../GearData/GearData.json');
+            var keys = ["Sleeping Bag","Tent","Backpack","Camping Stove"];
+            fetch('/api/gearcount', {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  gears: keys,
+                })
+              }).then(res => res.json())
+              .then(json => {
+                if (json.success) {
+                  const listItem = json.itemList.map((counter) =>
+                    <
+                    div class = "column" >
+                    <
+                    div class = "card" >
+                    <
+                    p > < i class = "fa" > < /i></p >
+                    <
+                    h3 > {
+                      counter.count
+                    } < /h3> <
+                    p > {
+                      counter.name
+                    } < /p> <
+                    /div> <
+                    /div>
+                  );
+                  this.setState({
+                    listItem: listItem
+                  });
+                }
+              });
+            this.setState({
+              isLoading: false,
+              token: token
+            });
+          } else {
+            this.setState({
+              isLoading: false
+            });
+          }
         });
-      });
-  }
-
-  newCounter() {
-    fetch('/api/counters', { method: 'POST' })
-      .then(res => res.json())
-      .then(json => {
-        let data = this.state.counters;
-        data.push(json);
-
-        this.setState({
-          counters: data
-        });
-      });
-  }
-
-  incrementCounter(index) {
-    const id = this.state.counters[index]._id;
-
-    fetch(`/api/counters/${id}/increment`, { method: 'PUT' })
-      .then(res => res.json())
-      .then(json => {
-        this._modifyCounter(index, json);
-      });
-  }
-
-  decrementCounter(index) {
-    const id = this.state.counters[index]._id;
-
-    fetch(`/api/counters/${id}/decrement`, { method: 'PUT' })
-      .then(res => res.json())
-      .then(json => {
-        this._modifyCounter(index, json);
-      });
-  }
-
-  deleteCounter(index) {
-    const id = this.state.counters[index]._id;
-
-    fetch(`/api/counters/${id}`, { method: 'DELETE' })
-      .then(_ => {
-        this._modifyCounter(index, null);
-      });
-  }
-
-  _modifyCounter(index, data) {
-    let prevData = this.state.counters;
-
-    if (data) {
-      prevData[index] = data;
     } else {
-      prevData.splice(index, 1);
+      this.setState({
+        isLoading: false
+      });
     }
+  }
 
+  onClickSignIn() {
     this.setState({
-      counters: prevData
+      isLoading: true
     });
+    const {
+      signInPass,
+      signInEmail
+    } = this.state;
+    fetch('/api/signin', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: signInEmail,
+          password: signInPass,
+        })
+      }).then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setInStorage('chaos_website', {
+            token: json.token
+          });
+          window.location.href = '/';
+        } else {
+          this.setState({
+            signInError: json.message,
+            signInEmail: '',
+            signInPass: '',
+            isLoading: false
+          });
+        }
+
+      });
+  }
+
+
+  onTextBoxChangeSignUpEmail(event) {
+    this.setState({
+      signInEmail: event.target.value
+    });
+  }
+  onTextBoxChangeSignUpPass(event) {
+    this.setState({
+      signInPass: event.target.value
+    });
+  }
+  onSelectChangeNewValue(event){
+    console.log(event.target.value);
   }
 
   render() {
-    return (
-      <>
-        <p>Counters:</p>
-
-        <ul>
-          { this.state.counters.map((counter, i) => (
-            <li key={i}>
-              <span>{counter.count} </span>
-              <button onClick={() => this.incrementCounter(i)}>+</button>
-              <button onClick={() => this.decrementCounter(i)}>-</button>
-              <button onClick={() => this.deleteCounter(i)}>x</button>
-            </li>
-          )) }
-        </ul>
-
-        <button onClick={this.newCounter}>New counter</button>
-      </>
-    );
-  }
+    const {isLoading,token,signInError,signInEmail,signInPass,expand,listItem} =this.state;
+    if(isLoading){
+      return(<div class="login-page"><p>Loading...</p></div>);
+    }
+    if(!token){
+      return (
+      <div class="login-page">
+      <div class="form">
+      <form class="login-form">
+      {
+        (signInError) ? (<p class = 'error'>{signInError}</p>) : (null)
+      }
+      <input type="text" placeholder="email" value = {signInEmail} 
+      onChange = {this.onTextBoxChangeSignUpEmail}/>
+      <input type="password" placeholder="password" 
+      value= {signInPass}
+      onChange = {this.onTextBoxChangeSignUpPass}
+      />
+      <button onClick={this.onClickSignIn}>login</button>
+      <p class="message">Not registered? <a href="/SignUp">Create an account</a></p>
+      </form>
+      </div>
+      </div>
+      );
+    }
+    return (<div class="row">
+    {listItem}
+  </div>);
 }
-
-export default Home;
+}
+export default CssModules(Home,styles);
