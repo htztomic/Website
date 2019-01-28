@@ -14,6 +14,16 @@ module.exports = merge(commonConfig, {
   },
 
    optimization: {
-    minimizer: [new UglifyJsPlugin()],
-  }
+    minimizer: [new UglifyJsPlugin({
+      uglifyOptions:{
+      compress: {
+        warnings: false
+      },
+      output: {
+        comments: false
+      },
+    }
+    }),
+    ],
+  },
 });
