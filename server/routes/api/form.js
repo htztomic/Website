@@ -1,8 +1,8 @@
-const GearCheckout = require('./server/models/GearCheckout');
-const Gear = require('./server/models/Gear');
-const ReturnGear = require('./server/models/ReturnGear');
-const Member = require('./server/models/Member');
-const UserSession = require('../server/models/UserSession');
+const GearCheckout = require('../../models/GearCheckout');
+const Gear = require('../../models/Gear');
+const ReturnGear = require('../../models/ReturnGear');
+const Member = require('../../models/Member');
+const UserSession = require('../../models/UserSession');
 function validateEmail(email) {
   var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);

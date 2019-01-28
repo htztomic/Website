@@ -1,5 +1,5 @@
-const User = require('chaosWebsite/client/server/models/models/User')
-const UserSession = require('chaosWebsite/client/server/models/models/UserSession')
+const User = require('../../models/User')
+const UserSession = require('../../models/UserSession')
 
 
 function validateEmail(email) {
