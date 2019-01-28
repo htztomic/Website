@@ -6,9 +6,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "node server",
+    "start": "webpack -p --progress --profile --colors && node server",
     "start:dev": "node server",
-    "heroku-postbuild": "webpack -p --progress --profile --colors"
+    "heroku-postbuild": "webpack -p"
   },
   "engines": {
     "node": ">=6"
