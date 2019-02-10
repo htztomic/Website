@@ -31,7 +31,7 @@ class Home extends Component {
         .then(json => {
           if (json.success) {
             const gearData = require('../../GearData/GearData.json');
-            var keys = ["Sleeping Bag","Tent","Backpack","Camping Stove"];
+            var keys = ["sleepingbag","tent","backpack","campingstove"];
             fetch('/api/gearcount', {
                 method: 'POST',
                 headers: {
