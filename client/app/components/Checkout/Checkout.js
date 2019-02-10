@@ -70,7 +70,7 @@ class Checkout extends Component {
       .then(json => {
         if(json.success){
           gearOptions = gearInfo["GearInfo"].map((gear) =>
-                    <option value = {gear} > {gear}< /option>);
+                    <option value = {gear.replace(" ","").toLowerCase()} > {gear}< /option>);
           this.setState({
             gearOptions:gearOptions,
             token:token,
