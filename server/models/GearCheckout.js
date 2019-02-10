@@ -50,6 +50,12 @@ const GearCheckoutSchema = new mongoose.Schema({
     gearPrice:{
       type:String
     },
+    gearDescription:{
+      type:String
+    },
+    gearCondition:{
+      type:String
+    },
     gearId:{
       type:String
     }
@@ -61,7 +67,13 @@ const GearCheckoutSchema = new mongoose.Schema({
     gearType:{
       type:String
     },
+    gearDescription:{
+      type:String
+    },
     gearPrice:{
+      type:String
+    },
+    gearCondition:{
       type:String
     },
     gearId:{

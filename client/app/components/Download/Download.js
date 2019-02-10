@@ -81,7 +81,7 @@ class Download extends Component {
         var csv = results.map(function(row) {
           return fields.map(function(fieldName) {
             if(fieldName == 'gears' || fieldName == 'damagedGear'){
-              var gearTemplate = {'gearName':'','gearType':'','gearPrice':''};
+              var gearTemplate = {'gearName':'','gearType':'','gearDescription':'','gearCondition':'','gearPrice':''};
               var gearField= Object.keys(gearTemplate);
               var gears = row[fieldName];
               return gears.map(function(row){

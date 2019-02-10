@@ -162,10 +162,23 @@ module.exports = (app) => {
               message: 'Quantity is left empty'
             });
           }
+          if (!gear.gearDescription) {
+            return res.send({
+              success: false,
+              message: 'Gear description is left empty'
+            });
+          }if (!gear.gearCondition) {
+            return res.send({
+              success: false,
+              message: 'Gear condition is left empty'
+            });
+          }
           try {
             let amountAvailable = await Gear.find({
               gearName: gear.gearName,
               gearType: gear.gearType,
+              gearDescription: gear.gearDescription,
+              gearCondition: gear.gearCondition,
               removed:false,
               checkedOut: false
             });
@@ -189,11 +202,15 @@ module.exports = (app) => {
             for (j = 0; j < gear["quantity"]; j++) {
               tempGear = {
                 gearName: gear.gearName,
-                gearType: gear.gearType
+                gearType: gear.gearType,
+                gearDescription :gear.gearDescription,
+                gearCondition : gear.gearCondition
               };
               let foundGear = await Gear.findOneAndUpdate({
                   gearName: gear.gearName,
                   gearType: gear.gearType,
+                  gearDescription : gear.gearDescription,
+                  gearCondition : gear.gearCondition,
                   checkedOut: false,
                   removed:false
                 }, {
@@ -239,7 +256,9 @@ module.exports = (app) => {
     const {
       gearName,
       gearPrice,
-      gearType
+      gearType,
+      gearDescription,
+      gearCondition
     } = body;
     if (!gearName) {
       return res.send({
@@ -259,10 +278,24 @@ module.exports = (app) => {
         message: 'Gear type is left blank'
       });
     }
+    if (!gearDescription) {
+      return res.send({
+        success: false,
+        message: 'Gear description is left blank'
+      });
+    }
+    if (!gearCondition) {
+      return res.send({
+        success: false,
+        message: 'Gear condition is left blank'
+      });
+    }
     const newGear = new Gear();
     newGear.gearName = gearName;
     newGear.gearType = gearType;
     newGear.gearPrice = gearPrice;
+    newGear.gearDescription = gearDescription;
+    newGear.gearCondition = gearCondition;
     newGear.save((err) => {
       if (err) {
         return res.send({
@@ -273,7 +306,7 @@ module.exports = (app) => {
       return res.send({
         success: true,
         message: 'Gear saved!'
-      })
+      });
     });
   });
 

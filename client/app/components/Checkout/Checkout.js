@@ -2,12 +2,15 @@ import React,{Component} from 'react';
 import CssModules from 'react-css-modules'
 import styles from '../../styles/homeStyle.scss';
 import {getFromStorage, setInStorage} from '../../utils/storage';
+
 class Checkout extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       gearData:require('../../GearData/GearData.json'),
+      gearInfo: require('../../GearData/AllGear.json'),
+      gearDescriptionInfo: require('../../GearData/GearDescription.json'),
       returnDate: '',
       token:'',
       limit:6,
@@ -18,16 +21,22 @@ class Checkout extends Component {
       loggedIn: false,
       errorMessage : '',
       expand :[false,false,false,false,false],
+      gearOptions:'',
+      gearDescriptionOptions:[''],
+      gearTypeOptions:[''],
       position: 0,
       email :'',
       creditNumber:'',
       expMonth:'',
       expYear:'',
       securityNumber:'',
+      expandCode :[''],
       gearSelected :[''],
-      gears:[{"gearName":'',
-              "gearType":'',
-              "quantity":''
+      gears:[{"gearName": '',
+              "gearType": '',
+              "quantity": '',
+              "gearDescription": '',
+              "gearCondition" : ''
               }]
     };
     this.onClickSubmit = this.onClickSubmit.bind(this);
@@ -46,17 +55,24 @@ class Checkout extends Component {
     this.onChangeExpYear = this.onChangeExpYear.bind(this);
     this.onChangeSecurityNumber = this.onChangeSecurityNumber.bind(this);
     this.onChangeReturnDate = this.onChangeReturnDate.bind(this);
+    this.onSelectDescription = this.onSelectDescription.bind(this);
+    this.onSelectCondition = this.onSelectCondition.bind(this);
   }
 
   componentDidMount() {
     const obj = getFromStorage("chaos_website");
+    const {gearInfo} = this.state;
+    let {gearOptions} = this.state;
     if(obj && obj.token){
       const token = obj.token;
       fetch('/api/verify?token='+ token)
       .then(res => res.json())
       .then(json => {
         if(json.success){
+          gearOptions = gearInfo["GearInfo"].map((gear) =>
+                    <option value = {gear} > {gear}< /option>);
           this.setState({
+            gearOptions:gearOptions,
             token:token,
             loggedIn:true,
           });
@@ -72,14 +88,16 @@ class Checkout extends Component {
   }
 
   onClickUnExpand(){
-    let {position, expand, gearSelected,gears} = this.state;
+    let {position, expand, gearTypeOptions,gearDescriptionOptions,gears} = this.state;
     position--;
     expand[position] = false;
     gears.pop();
-    gearSelected.pop();
+    gearTypeOptions.pop();
+    gearDescriptionOptions.pop();
     this.setState({
       expand:expand,
-      gearSelected:gearSelected,
+      gearTypeOptions:gearTypeOptions,
+      gearDescriptionOptions:gearDescriptionOptions,
       gears:gears,
       position:position
     });
@@ -113,6 +131,7 @@ class Checkout extends Component {
     });
   }
 
+
   onClickExpand() {
     const {
       position,
@@ -121,20 +140,25 @@ class Checkout extends Component {
     if (position < limit) {
       let {
         expand,
-        gearSelected,
+        gearTypeOptions,
+        gearDescriptionOptions,
         gears
       } = this.state;
       expand[position] = true;
-      gearSelected.push("");
+      gearTypeOptions.push("");
+      gearDescriptionOptions.push("");
       var gearTemplate = {
         "gearName": '',
         "gearType": '',
-        "quantity": ''
+        "quantity": '',
+        "gearDescription" :'',
+        "gearCondition" :''
       };
       gears.push(gearTemplate);
       this.setState({
         expand: expand,
-        gearSelected: gearSelected,
+        gearTypeOptions:gearTypeOptions,
+        gearDescriptionOptions:gearDescriptionOptions,
         gears: gears,
         position: position + 1
       });
@@ -171,15 +195,38 @@ class Checkout extends Component {
 
   onSelectName(event){
     var position = parseInt(event.target.id,10);
-    let {gearSelected,gears} = this.state;
+    let {gearOptions,gears, gearTypeOptions, gearDescriptionOptions} = this.state;
+    const {gearData, gearDescriptionInfo} = this.state;
+    gearTypeOptions[position] = gearData[event.target.value].map((type) =>
+     <option value = {type} > {type}< /option>
+     );
+
+    gearDescriptionOptions[position] = gearDescriptionInfo[event.target.value].map((Description) =>
+                    <option value = {Description} > {Description}< /option>
+                  );
     gears[position]["gearName"]=event.target.value;
-    gearSelected[position] =event.target.value;
     this.setState({
-      gearSelected:gearSelected,
+      gearTypeOptions:gearTypeOptions,
+      gearDescriptionOptions:gearDescriptionOptions,
       gears:gears
     });
   }
-
+  onSelectDescription(event){
+    let {gears}= this.state;
+    var position = parseInt(event.target.id,10);
+    gears[position]["gearDescription"] = event.target.value;
+    this.setState({
+      gears:gears
+    });
+  }
+  onSelectCondition(event){
+    let {gears}= this.state;
+    var position = parseInt(event.target.id,10);
+    gears[position]["gearCondition"] = event.target.value;
+    this.setState({
+      gears:gears
+    });
+  }
   onSelectQuantity(event){
     let {gears}= this.state;
     var position = parseInt(event.target.id,10);
@@ -246,9 +293,13 @@ class Checkout extends Component {
           position: 0,
           email: '',
           gearSelected: [''],
+          gearTypeOptions : [''],
+          gearDescriptionOptions : [''],
           gears: [{
             "gearName": '',
             "gearType": '',
+            "gearDescription" :'',
+            "gearCondition" : '',
             "quantity": ''
           }]
         });
@@ -262,7 +313,11 @@ class Checkout extends Component {
   }
 
   render() {
-    const {loggedIn,gears,creditNumber,expMonth,expYear,securityNumber,expand,firstName,lastName,email,id,phoneNumber,gearData,gearSelected,errorMessage} =this.state;
+    const {loggedIn,gears,creditNumber,
+      expMonth,expYear,securityNumber,expand,firstName,
+      lastName,email,id,phoneNumber,gearData,
+      gearSelected,errorMessage, gearOptions,
+      gearTypeOptions,gearDescriptionOptions, expandCode} =this.state;
     if(loggedIn){
      return(
                <div class="form-style-5">
@@ -280,318 +335,233 @@ class Checkout extends Component {
 </fieldset>
 <fieldset>
 <legend><span class="number">2</span> Item Checkout Info</legend>
+<div>
 <label >Item 1:</label>
 <select id="0" onChange ={this.onSelectName} value={gears[0]["gearName"]} >
+  {
+    (gearOptions)
+  }
+</select>
+
+<label >Brand/Model:</label>
+
+<select id="0" onChange ={this.onSelectType}  value={gears[0]["gearType"]}>
   <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
+  {
+    (gearTypeOptions[0])
+  }
 </select> 
-<label  class= "gearTypeLabel">Type:</label> <label class="quantityLabel" >Quantity:</label>
-<select id="0" class="gearType" onChange ={this.onSelectType}  value={gears[0]["gearType"]}>
+<label >Description:</label>
+<select id="0" onChange ={this.onSelectDescription}  value={gears[0]["gearDescription"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[0]][0]}>{gearData[gearSelected[0]][0]}</option>
-  <option value={gearData[gearSelected[0]][1]}>{gearData[gearSelected[0]][1]}</option>
-</select> 
+  {
+    (gearDescriptionOptions[0])
+  }
+</select>
+<label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+<select id="0" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[0]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+</select>
 <select id="0" class="quantity" onChange ={this.onSelectQuantity} value={gears[0]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select> 
-{
-  (expand[0]) ? (<label >Item 2:</label>) :(null)
-}
-{
-  (expand[0]) ? (
-  <select id="1" onChange ={this.onSelectName}  value={gears[1]["gearName"]}  >
-  <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
-</select> 
-  ) : (null)
-}
+</select>
+</div>
 
 {
-  (expand[0]) ? (<label class="gearTypeLabel" >Type:</label>) :(null)
-}
-{
-  (expand[0]) ? (<label class="quantityLabel">Quantity:</label>) :(null)
-}
-{
-  (expand[0]) ? (
-  <select id="1" class="gearType" onChange ={this.onSelectType}  value={gears[1]["gearType"]}>
+  (expand[0]) ? (<div>
+  <label >Item 2:</label>
+  <select id="1" onChange ={this.onSelectName} value={gears[1]["gearName"]} >
+  {
+    (gearOptions)
+  }
+  </select>
+
+  <label >Brand/Model:</label>
+
+  <select id="1" onChange ={this.onSelectType}  value={gears[1]["gearType"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[1]][0]}>{gearData[gearSelected[1]][0]}</option>
-  <option value={gearData[gearSelected[1]][1]}>{gearData[gearSelected[1]][1]}</option>
-</select> ) :(null)
-}
-{
-  (expand[0]) ? (
+  {
+    (gearTypeOptions[1])
+  }
+  </select> 
+  <label >Description:</label>
+  <select id="1" onChange ={this.onSelectDescription}  value={gears[1]["gearDescription"]}>
+  <option value=""></option>
+  {
+    (gearDescriptionOptions[1])
+  }
+  </select>
+  <label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+  <select id="1" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[1]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+  </select>
   <select id="1" class="quantity" onChange ={this.onSelectQuantity} value={gears[1]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select>  ) :(null)
+  </select>
+  </div>) : (null)
 }
+{
+  (expand[1]) ? (<div>
+  <label >Item 3:</label>
+  <select id="2" onChange ={this.onSelectName} value={gears[2]["gearName"]} >
+  {
+    (gearOptions)
+  }
+  </select>
 
-{
-  (expand[1]) ? (<label >Item 3:</label>) :(null)
-}
-{
-  (expand[1]) ? (
-  <select id="2" onChange ={this.onSelectName}  value={gears[2]["gearName"]}  >
-  <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
-</select> 
-  ) : (null)
-}
+  <label >Brand/Model:</label>
 
-{
-  (expand[1]) ? (<label class="gearTypeLabel" >Type:</label>) :(null)
-}
-{
-  (expand[1]) ? (<label class="quantityLabel" >Quantity:</label>) :(null)
-}
-{
-  (expand[1]) ? (
-  <select id="2" class="gearType" onChange ={this.onSelectType}  value={gears[2]["gearType"]}>
+  <select id="2" onChange ={this.onSelectType}  value={gears[2]["gearType"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[2]][0]}>{gearData[gearSelected[2]][0]}</option>
-  <option value={gearData[gearSelected[2]][1]}>{gearData[gearSelected[2]][1]}</option>
-</select> ) :(null)
-}
-{
-  (expand[1]) ? (
+  {
+    (gearTypeOptions[2])
+  }
+  </select> 
+  <label >Description:</label>
+  <select id="2" onChange ={this.onSelectDescription}  value={gears[2]["gearDescription"]}>
+  <option value=""></option>
+  {
+    (gearDescriptionOptions[2])
+  }
+  </select>
+  <label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+  <select id="2" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[2]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+  </select>
   <select id="2" class="quantity" onChange ={this.onSelectQuantity} value={gears[2]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select>  ) :(null)
+  </select>
+  </div>) : (null)
 }
+{
+  (expand[2]) ? (<div>
+  <label >Item 4:</label>
+  <select id="3" onChange ={this.onSelectName} value={gears[3]["gearName"]} >
+  {
+    (gearOptions)
+  }
+  </select>
 
-{
-  (expand[2]) ? (<label >Item 4:</label>) :(null)
-}
-{
-  (expand[2]) ? (
-  <select id="3" onChange ={this.onSelectName}  value={gears[3]["gearName"]}  >
+  <label >Brand/Model:</label>
+
+  <select id="3" onChange ={this.onSelectType}  value={gears[3]["gearType"]}>
   <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
-</select> 
-  ) : (null)
-}
-
-{
-  (expand[2]) ? (<label class="gearTypeLabel" >Type:</label>) :(null)
-}
-{
-  (expand[2]) ? (<label class="quantityLabel" >Quantity:</label>) :(null)
-}
-{
-  (expand[2]) ? (
-  <select id="3" class="gearType" onChange ={this.onSelectType}  value={gears[3]["gearType"]}>
+  {
+    (gearTypeOptions[3])
+  }
+  </select> 
+  <label >Description:</label>
+  <select id="3" onChange ={this.onSelectDescription}  value={gears[3]["gearDescription"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[3]][0]}>{gearData[gearSelected[3]][0]}</option>
-  <option value={gearData[gearSelected[3]][1]}>{gearData[gearSelected[3]][1]}</option>
-</select> ) :(null)
-}
-
-{
-  (expand[2]) ? (
+  {
+    (gearDescriptionOptions[3])
+  }
+  </select>
+  <label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+  <select id="3" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[3]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+  </select>
   <select id="3" class="quantity" onChange ={this.onSelectQuantity} value={gears[3]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select>  ) :(null)
+  </select>
+  </div>) : (null)
 }
+{
+  (expand[3]) ? (<div>
+  <label >Item 5:</label>
+  <select id="4" onChange ={this.onSelectName} value={gears[4]["gearName"]} >
+  {
+    (gearOptions)
+  }
+  </select>
 
-{
-  (expand[3]) ? (<label >Item 5:</label>) :(null)
-}
-{
-  (expand[3]) ? (
-  <select id="4" onChange ={this.onSelectName}  value={gears[4]["gearName"]}  >
+  <label >Brand/Model:</label>
+
+  <select id="4" onChange ={this.onSelectType}  value={gears[4]["gearType"]}>
   <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
-</select> 
-  ) : (null)
-}
-
-{
-  (expand[3]) ? (<label class="gearTypeLabel" >Type:</label>) :(null)
-}
-{
-  (expand[3]) ? (<label class="quantityLabel" >Quantity:</label>) :(null)
-}
-{
-  (expand[3]) ? (
-  <select id="4" class="gearType" onChange ={this.onSelectType}  value={gears[4]["gearType"]}>
+  {
+    (gearTypeOptions[4])
+  }
+  </select> 
+  <label >Description:</label>
+  <select id="4" onChange ={this.onSelectDescription}  value={gears[4]["gearDescription"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[4]][0]}>{gearData[gearSelected[4]][0]}</option>
-  <option value={gearData[gearSelected[4]][1]}>{gearData[gearSelected[4]][1]}</option>
-</select> ) :(null)
-}
-
-{
-  (expand[3]) ? (
+  {
+    (gearDescriptionOptions[4])
+  }
+  </select>
+  <label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+  <select id="4" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[4]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+  </select>
   <select id="4" class="quantity" onChange ={this.onSelectQuantity} value={gears[4]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select>  ) :(null)
+  </select>
+  </div>) : (null)
 }
 {
-  (expand[4]) ? (<label >Item 6:</label>) :(null)
-}
-{
-  (expand[4]) ? (
-  <select id="5" onChange ={this.onSelectName}  value={gears[5]["gearName"]}  >
-  <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
-</select> 
-  ) : (null)
-}
+  (expand[4]) ? (<div>
+  <label >Item 6:</label>
+  <select id="5" onChange ={this.onSelectName} value={gears[5]["gearName"]} >
+  {
+    (gearOptions)
+  }
+  </select>
 
-{
-  (expand[4]) ? (<label class="gearTypeLabel">Type:</label>) :(null)
-}
-{
-  (expand[4]) ? (<label class="quantityLabel">Quantity:</label>) :(null)
-}
-{
-  (expand[4]) ? (
-  <select id="5" class="gearType" onChange ={this.onSelectType}  value={gears[5]["gearType"]}>
+  <label >Brand/Model:</label>
+
+  <select id="5" onChange ={this.onSelectType}  value={gears[5]["gearType"]}>
   <option value=""></option>
-  <option value={gearData[gearSelected[5]][0]}>{gearData[gearSelected[5]][0]}</option>
-  <option value={gearData[gearSelected[5]][1]}>{gearData[gearSelected[5]][1]}</option>
-</select> ) :(null)
-}
-{
-  (expand[4]) ? (
+  {
+    (gearTypeOptions[5])
+  }
+  </select> 
+  <label >Description:</label>
+  <select id="5" onChange ={this.onSelectDescription}  value={gears[5]["gearDescription"]}>
+  <option value=""></option>
+  {
+    (gearDescriptionOptions[5])
+  }
+  </select>
+  <label  class="gearConditionLabel" >Condition:</label> <label class="quantityLabel" >Quantity:</label>
+  <select id="5" class="gearCondition" onChange ={this.onSelectCondition}  value={gears[5]["gearCondition"]}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+  </select>
   <select id="5" class="quantity" onChange ={this.onSelectQuantity} value={gears[5]["quantity"]} >
   <option value=""></option>
   <option value="1">1</option>
   <option value="2">2</option>
-</select>  ) :(null)
+  </select>
+  </div>) : (null)
 }
-
 <button type ="button" class= "add" onClick= {this.onClickExpand}>Add</button>
 { 
  (expand[0]) ? (<button type="button" class ="remove" onClick= {this.onClickUnExpand}>Remove</button>)

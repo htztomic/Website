@@ -17,9 +17,6 @@ class ReturnGear extends Component {
       returnInfo:{}
     };
     this.onClickSearch = this.onClickSearch.bind(this);
-    // this.onSelectGear = this.onSelectGear.bind(this);
-    // this.onChangePrice = this.onChangePrice.bind(this);
-    // this.onSelectType = this.onSelectType.bind(this);
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangeCondition = this.onChangeCondition.bind(this);
     this.onChangeComment = this.onChangeComment.bind(this);
@@ -69,6 +66,8 @@ class ReturnGear extends Component {
             <div>
             <label >Gear name: {gears.gearName}</label>
             <label >Gear type: {gears.gearType}</label>
+            <label >Gear description: {gears.gearDescription}</label>
+            <label >Gear original condition: {gears.gearCondition}</label>
             <label >Gear condition:</label>
             <select onChange={this.onChangeCondition} id= {gears.gearId} >
             <option value=""></option>

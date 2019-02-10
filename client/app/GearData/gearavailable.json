@@ -1,5 +1,7 @@
 {
 	"gearName":"",
 	"gearType":"",
+	"gearDescription":"",
+	"gearCondition":"",
 	"gearPrice":""
 }

@@ -12,6 +12,12 @@ const GearSchema = new mongoose.Schema({
   gearPrice: {
     type: String,
   },
+  gearDescription:{
+    type:String,
+  },
+  gearCondition:{
+    type:String
+  },
   timestamp:{
   	type: Date,
   	default: Date.now()

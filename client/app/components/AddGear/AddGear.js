@@ -10,24 +10,38 @@ class AddGear extends Component {
       loggedIn: false,
       gearSelected:'',
       gearData: require('../../GearData/GearData.json'),
+      gearInfo: require('../../GearData/AllGear.json'),
+      gearDescriptionInfo: require('../../GearData/GearDescription.json'),
+      gearDescription:'',
       gearType:'',
+      gearOptions:'',
+      gearDescriptionOptions:'',
+      gearTypeOptions:'',
+      gearCondition:'',
       gearPrice:''
     };
     this.onClickSubmit = this.onClickSubmit.bind(this);
     this.onSelectGear = this.onSelectGear.bind(this);
     this.onChangePrice = this.onChangePrice.bind(this);
     this.onSelectType = this.onSelectType.bind(this);
+    this.onSelectDescription = this.onSelectDescription.bind(this);
+    this.onSelectCondition = this.onSelectCondition.bind(this);
   }
 
   componentDidMount() {
     const obj = getFromStorage("chaos_website");
+    const {gearInfo} = this.state;
     if(obj && obj.token){
       const token = obj.token;
       fetch('/api/verify?token='+ token)
       .then(res => res.json())
       .then(json => {
         if(json.success){
+          let gearOptions = gearInfo["GearInfo"].map((gear) =>
+                    <option value = {gear.replace(" ", "").toLowerCase()} > {gear}< /option>
+                  );
           this.setState({
+            gearOptions:gearOptions,
             loggedIn:true,
           });
         }
@@ -46,9 +60,30 @@ class AddGear extends Component {
     });
   }
 
-  onSelectGear(event){
+  onSelectDescription(event){
     this.setState({
-      gearSelected:event.target.value
+      gearDescription:event.target.value
+    })
+  }
+
+  onSelectCondition(event){
+    this.setState({
+      gearCondition:event.target.value
+    })
+  }
+
+  onSelectGear(event){
+    const {gearData, gearDescriptionInfo} = this.state;
+    let gearTypeOptions = gearData[event.target.value].map((type) =>
+     <option value = {type} > {type}< /option>
+     );
+    let gearDescriptionOptions = gearDescriptionInfo[event.target.value].map((Description) =>
+                    <option value = {Description} > {Description}< /option>
+                  );
+    this.setState({
+      gearSelected:event.target.value,
+      gearTypeOptions:gearTypeOptions,
+      gearDescriptionOptions:gearDescriptionOptions
     });
   }
   onSelectType(event){
@@ -60,7 +95,9 @@ class AddGear extends Component {
     const {
       gearSelected,
       gearType,
-      gearPrice
+      gearPrice,
+      gearDescription,
+      gearCondition
     } = this.state;
     fetch('/api/addgear', {
         method: 'POST',
@@ -71,7 +108,9 @@ class AddGear extends Component {
         body: JSON.stringify({
           gearName: gearSelected,
           gearType: gearType,
-          gearPrice: gearPrice
+          gearPrice: gearPrice,
+          gearDescription: gearDescription,
+          gearCondition: gearCondition
         })
       }).then(res => res.json())
       .then(json => {
@@ -80,7 +119,9 @@ class AddGear extends Component {
             gearSelected: '',
             errorMessage: json.message,
             gearType: '',
-            gearPrice:''
+            gearPrice:'',
+            gearDescription:'',
+            gearCondition: ''
           })
         } else {
           this.setState({
@@ -90,7 +131,11 @@ class AddGear extends Component {
       });
   }
   render() {
-    const {loggedIn, errorMessage,email,gearSelected, gearData,gearType, gearPrice} =this.state;
+    const {loggedIn, errorMessage,email,gearSelected,
+     gearData,gearType,
+     gearPrice,gearOptions,
+     gearDescription,
+     gearTypeOptions, gearDescriptionOptions, gearCondition} =this.state;
     if(loggedIn ){
      return(
       <div class="form-style-5">
@@ -102,35 +147,31 @@ class AddGear extends Component {
 <legend><span class="number">1</span> Add Gear</legend>
 <label >Gear:</label>
 <select value={gearSelected} onChange ={this.onSelectGear} >
-  <option value=""></option>
-  <option value="Sleeping Bag">Sleeping Bag</option>
-  <option value="Tent">Tent</option>
-  <option value="Sleeping Pad">Sleeping Pad</option>
-  <option value="Water Filter">Water Filter</option>
-  <option value="Backpack">Backpack</option>
-  <option value="Daypack">Daypack</option>
-  <option value="Poles">Poles</option>
-  <option value="Headlamp">Headlamp</option>
-  <option value="Backpacking Stoves">Backpacking Stoves</option>
-  <option value="Camping Stove">Camping Stove</option>
-  <option value="Hammock">Hammock</option>
-  <option value="Bear Can">Bear Can</option>
-  <option value="Ground Tarp">Ground Tarp</option>
-  <option value="Tarp tent">Tarp tent</option>
-  <option value="Climbing Helmet">Climbing Helmet</option>
-  <option value="Climbing Shoes">Climbing Shoes</option>
-  <option value="Snowshoes">Snowshoes</option>
-  <option value="Ice Axes">Ice Axes</option>
-  <option value="Avalanche Beacon">Avalanche Beacon</option>
-  <option value="Crampons">Crampons</option>
-  <option value="Pots/Pans">Pots/Pans</option>
+  {
+    (gearOptions)
+  }
 </select> 
-<label  class= "gearTypeLabel">Type:</label> <label class="quantityLabel" >Price:</label>
-<select id="0" class="gearType" onChange ={this.onSelectType}  value={gearType}>
+<label >Brand/Model:</label>
+<select onChange ={this.onSelectType}  value={gearType}>
   <option value=""></option>
-  <option value={gearData[gearSelected][0]}>{gearData[gearSelected][0]}</option>
-  <option value={gearData[gearSelected][1]}>{gearData[gearSelected][1]}</option>
-</select> 
+  {
+    (gearTypeOptions)
+  }
+</select>
+<label >Description:</label>
+<select onChange ={this.onSelectDescription}  value={gearDescription}>
+  <option value=""></option>
+  {
+    (gearDescriptionOptions)
+  }
+</select>
+<label  class= "gearConditionLabel">Condition:</label> <label class="quantityLabel" >Price:</label>
+<select id="0" class="gearCondition" onChange ={this.onSelectCondition}  value={gearCondition}>
+  <option value=""></option>
+  <option value="new">New</option>
+  <option value="moderate">Moderate</option>
+  <option value="old">Old</option>
+</select>
 <input class="quantity" onChange={this.onChangePrice} value={gearPrice} placeholder="Price *"/>
 </fieldset>
 <input type="button" value="Submit" onClick = {this.onClickSubmit} />
