@@ -12,8 +12,9 @@ class Checkout extends Component {
       gearInfo: require('../../GearData/AllGear.json'),
       gearDescriptionInfo: require('../../GearData/GearDescription.json'),
       returnDate: '',
+      addManual:true,
       token:'',
-      limit:6,
+      limit:5,
       firstName:'',
       lastName:'',
       id:'',
@@ -29,15 +30,13 @@ class Checkout extends Component {
       creditNumber:'',
       expMonth:'',
       expYear:'',
+      barcodes:[''],
       securityNumber:'',
-      expandCode :[''],
       gearSelected :[''],
-      gears:[{"gearName": '',
-              "gearType": '',
-              "quantity": '',
-              "gearDescription": '',
-              "gearCondition" : ''
-              }]
+      barcodeExpand:[false,false,false,false,false,false,false,false,false],
+      barcodeLimit: 9,
+      barcodePosition:0,
+      gears:[]
     };
     this.onClickSubmit = this.onClickSubmit.bind(this);
     this.onSelectName = this.onSelectName.bind(this);
@@ -57,6 +56,11 @@ class Checkout extends Component {
     this.onChangeReturnDate = this.onChangeReturnDate.bind(this);
     this.onSelectDescription = this.onSelectDescription.bind(this);
     this.onSelectCondition = this.onSelectCondition.bind(this);
+    this.onChangeBarcode = this.onChangeBarcode.bind(this);
+    this.onClickBarcodeUnExpand = this.onClickBarcodeUnExpand.bind(this);
+    this.onClickBarcodeExpand = this.onClickBarcodeExpand.bind(this);
+    this.onClickManualAdd = this.onClickManualAdd.bind(this);
+    this.onClickRemoveManualAdd = this.onClickRemoveManualAdd.bind(this);
   }
 
   componentDidMount() {
@@ -87,20 +91,36 @@ class Checkout extends Component {
     }
   }
 
+  onClickBarcodeUnExpand(){
+    let{barcodePosition,barcodeExpand,barcodes} = this.state;
+    barcodePosition--;
+    if(barcodePosition >= 0){
+      barcodeExpand[barcodePosition] = false;
+      barcodes.pop();
+      this.setState({
+        barcodes:barcodes,
+        barcodePosition:barcodePosition,
+        barcodeExpand:barcodeExpand
+      })
+    }
+  }
+
   onClickUnExpand(){
     let {position, expand, gearTypeOptions,gearDescriptionOptions,gears} = this.state;
     position--;
-    expand[position] = false;
-    gears.pop();
-    gearTypeOptions.pop();
-    gearDescriptionOptions.pop();
-    this.setState({
-      expand:expand,
-      gearTypeOptions:gearTypeOptions,
-      gearDescriptionOptions:gearDescriptionOptions,
-      gears:gears,
-      position:position
-    });
+    if(position >= 0){
+      expand[position] = false;
+      gears.pop();
+      gearTypeOptions.pop();
+      gearDescriptionOptions.pop();
+      this.setState({
+        expand:expand,
+        gearTypeOptions:gearTypeOptions,
+        gearDescriptionOptions:gearDescriptionOptions,
+        gears:gears,
+        position:position
+      });
+    }
   }
 
   onChangeCreditNumber(event) {
@@ -131,6 +151,19 @@ class Checkout extends Component {
     });
   }
 
+  onClickBarcodeExpand(){
+    const{barcodePosition,barcodeLimit} = this.state;
+    if(barcodePosition < barcodeLimit){
+      let {barcodeExpand, barcodes} = this.state;
+      barcodeExpand[barcodePosition] = true;
+      barcodes.push("");
+      this.setState({
+        barcodeExpand:barcodeExpand,
+        barcodes : barcodes,
+        barcodePosition : barcodePosition + 1
+      })
+    }
+  }
 
   onClickExpand() {
     const {
@@ -187,6 +220,34 @@ class Checkout extends Component {
     });
   }
 
+  onClickManualAdd(event){
+    let{gears} = this.state;
+    var gearTemplate = {
+        "gearName": '',
+        "gearType": '',
+        "quantity": '',
+        "gearDescription" :'',
+        "gearCondition" :''
+      };
+    gears.push(gearTemplate);
+    this.setState({
+      gears:gears,
+      addManual:false
+    })
+  }
+
+  onClickRemoveManualAdd(event){
+      this.setState({
+      expand :[false,false,false,false,false],
+      gearDescriptionOptions:[''],
+      gearTypeOptions:[''],
+      position: 0,
+      gears:[],
+      gearSelected :[''],
+      addManual:true
+      })
+  }
+
   onChangeEmail(event){
     this.setState({
       email:event.target.value
@@ -219,6 +280,16 @@ class Checkout extends Component {
       gears:gears
     });
   }
+
+  onChangeBarcode(event){
+    let {barcodes}= this.state;
+    var position = parseInt(event.target.id,10);
+    barcodes[position] = event.target.value;
+    this.setState({
+      barcodes:barcodes
+    });
+  }
+
   onSelectCondition(event){
     let {gears}= this.state;
     var position = parseInt(event.target.id,10);
@@ -255,6 +326,7 @@ class Checkout extends Component {
       expMonth,
       expYear,
       returnDate,
+      barcodes,
       securityNumber
     } = this.state;
     fetch('/api/checkoutgear', {
@@ -268,6 +340,7 @@ class Checkout extends Component {
           firstName: firstName,
           id: id,
           gears: gears,
+          barcodes:barcodes,
           lastName: lastName,
           phoneNumber: phoneNumber,
           ccNumber:creditNumber,
@@ -292,6 +365,9 @@ class Checkout extends Component {
           expand: [false, false, false, false, false],
           position: 0,
           email: '',
+          barcodes:[''],
+          barcodeExpand:[false,false,false,false,false,false,false,false,false],
+          barcodePosition:0,
           gearSelected: [''],
           gearTypeOptions : [''],
           gearDescriptionOptions : [''],
@@ -317,7 +393,7 @@ class Checkout extends Component {
       expMonth,expYear,securityNumber,expand,firstName,
       lastName,email,id,phoneNumber,gearData,
       gearSelected,errorMessage, gearOptions,
-      gearTypeOptions,gearDescriptionOptions, expandCode} =this.state;
+      gearTypeOptions,gearDescriptionOptions, expandCode, barcodes,barcodeExpand, addManual} =this.state;
     if(loggedIn){
      return(
                <div class="form-style-5">
@@ -336,6 +412,98 @@ class Checkout extends Component {
 <fieldset>
 <legend><span class="number">2</span> Item Checkout Info</legend>
 <div>
+<label >Item 1 Barcode:</label>
+<input id="0" type="text" value={barcodes[0]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+</div>
+{
+  (barcodeExpand[0]) ? (
+  <div>
+  <label >Item 2 Barcode:</label>
+  <input id="1" type="text" value={barcodes[1]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+{
+  (barcodeExpand[1]) ? (
+  <div>
+  <label >Item 3 Barcode:</label>
+  <input id="2" type="text" value={barcodes[2]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+{
+  (barcodeExpand[2]) ? (
+  <div>
+  <label >Item 4 Barcode:</label>
+  <input id="3" type="text" value={barcodes[3]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+
+{
+  (barcodeExpand[3]) ? (
+  <div>
+  <label >Item 5 Barcode:</label>
+  <input id="4" type="text" value={barcodes[4]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+
+
+{
+  (barcodeExpand[4]) ? (
+  <div>
+  <label >Item 6 Barcode:</label>
+  <input id="5" type="text" value={barcodes[5]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+
+{
+  (barcodeExpand[5]) ? (
+  <div>
+  <label >Item 7 Barcode:</label>
+  <input id="6" type="text" value={barcodes[6]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+
+{
+  (barcodeExpand[6]) ? (
+  <div>
+  <label >Item 8 Barcode:</label>
+  <input id="7" type="text" value={barcodes[7]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+{
+  (barcodeExpand[7]) ? (
+  <div>
+  <label >Item 9 Barcode:</label>
+  <input id="8" type="text" value={barcodes[8]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+{
+  (barcodeExpand[8]) ? (
+  <div>
+  <label >Item 10 Barcode:</label>
+  <input id="9" type="text" value={barcodes[9]} onChange={this.onChangeBarcode} placeholder="Enter barcode *"/>   
+  </div>
+  ) : (null)
+}
+<button type ="button" class= "add" onClick= {this.onClickBarcodeExpand}>Add</button>
+<button type="button" class ="remove" onClick= {this.onClickBarcodeUnExpand}>Remove</button>
+{
+  (addManual) ? (<button type="button" onClick= {this.onClickManualAdd}>Manual Add</button>) :(null)
+}
+
+{
+  (!addManual) ? (<button type="button" onClick= {this.onClickRemoveManualAdd}>Remove Manual Add</button>) :(null)
+}
+{
+ (!addManual) ? (
+ <div>
 <label >Item 1:</label>
 <select id="0" onChange ={this.onSelectName} value={gears[0]["gearName"]} >
   {
@@ -371,7 +539,8 @@ class Checkout extends Component {
   <option value="2">2</option>
 </select>
 </div>
-
+) :(null)
+}
 {
   (expand[0]) ? (<div>
   <label >Item 2:</label>
@@ -562,10 +731,14 @@ class Checkout extends Component {
   </select>
   </div>) : (null)
 }
-<button type ="button" class= "add" onClick= {this.onClickExpand}>Add</button>
-{ 
- (expand[0]) ? (<button type="button" class ="remove" onClick= {this.onClickUnExpand}>Remove</button>)
-  :(null)
+
+
+
+{
+  (!addManual) ? (<button type="button" class= "add" onClick= {this.onClickExpand}>Add</button>) :(null)
+}
+{
+  (!addManual) ? (<button type="button" class= "remove" onClick= {this.onClickUnExpand}>Remove</button>) :(null)
 }
 <label >Return Date:</label>
 <input id="date" type="date" onChange={this.onChangeReturnDate}/>

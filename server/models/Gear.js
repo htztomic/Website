@@ -29,6 +29,10 @@ const GearSchema = new mongoose.Schema({
   checkedOut: {
   	type: Boolean,
   	default: false		
+  },
+  barcode: {
+    type: String,
+    default: ''    
   }
 });
 

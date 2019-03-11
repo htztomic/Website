@@ -28,7 +28,8 @@ module.exports = (app) => {
       ccSecurityNumber,
       ccExpMonth,
       ccExpYear,
-      returnDate
+      returnDate,
+      barcodes
     } = body;
     let {
       email
@@ -142,6 +143,7 @@ module.exports = (app) => {
         newCheckout.ccSecurityNumber = ccSecurityNumber;
         newCheckout.gearReturnDate = returnDate;
         newCheckout.id = id;
+        if(gears.length != 0){
         for (i = 0; i < gears.length; i++) {
           var gear = gears[i]
           if (!gear.gearName) {
@@ -230,6 +232,67 @@ module.exports = (app) => {
             });
           }
         }
+        }
+
+        for (i = 0; i < barcodes.length; i++) {
+          var barcode = barcodes[i]
+          if (!barcode) {
+            return res.send({
+              success: false,
+              message: 'Barcode left empty'
+            });
+          }
+          try {
+            let amountAvailable = await Gear.find({
+              barcode: barcode,
+              removed:false,
+              checkedOut: false
+            });
+            if (amountAvailable.length != 1) {
+              return res.send({
+                success: false,
+                message: 'Wrong barcode'
+              });
+            }
+          } catch (err) {
+            return res.send({
+              success: false,
+              message: 'Server Error'
+            });
+          }
+        }
+
+        for (i = 0; i < barcodes.length; i++) {
+          var barcode = barcodes[i];
+          try {
+          var foundGear = await Gear.findOneAndUpdate({
+                  barcode:barcode,
+                  checkedOut: false,
+                  removed:false
+                }, {
+                  $set: {
+                    checkedOut: true
+                  }
+                },
+                null);
+          tempGear = {
+                gearName: foundGear.gearName,
+                gearType: foundGear.gearType,
+                gearDescription :foundGear.gearDescription,
+                gearCondition : foundGear.gearCondition,
+                gearPrice : foundGear.gearPrice,
+                barcode : foundGear.barcode,
+                gearId:foundGear._id
+              };
+          allGear.push(tempGear);
+          } catch (err) {
+            return res.send({
+              success: false,
+              message: 'Server Error'
+            });
+          }     
+        }
+
         newCheckout.gears = allGear;
         newCheckout.save((err) => {
           if (err) {
@@ -249,7 +312,7 @@ module.exports = (app) => {
     });
   });
 
-  app.post('/api/addgear', (req, res, next) => {
+  app.post('/api/addgear', async (req, res, next) => {
     const {
       body
     } = req;
@@ -258,7 +321,8 @@ module.exports = (app) => {
       gearPrice,
       gearType,
       gearDescription,
-      gearCondition
+      gearCondition,
+      barcode
     } = body;
     if (!gearName) {
       return res.send({
@@ -296,6 +360,26 @@ module.exports = (app) => {
     newGear.gearPrice = gearPrice;
     newGear.gearDescription = gearDescription;
     newGear.gearCondition = gearCondition;
+    newGear.barcode = barcode;
+    try {
+        let amountAvailable = await Gear.find({
+              barcode:barcode,
+              removed:false,
+              checkedOut: false
+            });
+            if (amountAvailable.length != 0) {
+              return res.send({
+                success: false,
+                message: 'Barcode already in the system'
+              });
+            }
+          } catch (err) {
+            return res.send({
+              success: false,
+              message: 'Server Error'
+            });
+    }
+
     newGear.save((err) => {
       if (err) {
         return res.send({

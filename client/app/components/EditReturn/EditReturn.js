@@ -188,7 +188,7 @@ class EditReturn extends Component {
       template[gearInfo[chosen][gears[i].gearId]] = 'selected';
       selection[gears[i].gearId] = template;
     }
-    console.log(selection);
+    //console.log(selection);
 
     const listGear = gears.map((gears) =>
             <div>

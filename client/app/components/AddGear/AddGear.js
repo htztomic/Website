@@ -18,6 +18,7 @@ class AddGear extends Component {
       gearDescriptionOptions:'',
       gearTypeOptions:'',
       gearCondition:'',
+      barcode:'',
       gearPrice:''
     };
     this.onClickSubmit = this.onClickSubmit.bind(this);
@@ -26,6 +27,7 @@ class AddGear extends Component {
     this.onSelectType = this.onSelectType.bind(this);
     this.onSelectDescription = this.onSelectDescription.bind(this);
     this.onSelectCondition = this.onSelectCondition.bind(this);
+    this.onChangeBarcode = this.onChangeBarcode.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +68,12 @@ class AddGear extends Component {
     })
   }
 
+  onChangeBarcode(event){
+    this.setState({
+      barcode:event.target.value
+    })
+  }
+
   onSelectCondition(event){
     this.setState({
       gearCondition:event.target.value
@@ -74,16 +82,8 @@ class AddGear extends Component {
 
   onSelectGear(event){
     const {gearData, gearDescriptionInfo} = this.state;
-    let gearTypeOptions = gearData[event.target.value].map((type) =>
-     <option value = {type} > {type}< /option>
-     );
-    let gearDescriptionOptions = gearDescriptionInfo[event.target.value].map((Description) =>
-                    <option value = {Description} > {Description}< /option>
-                  );
     this.setState({
       gearSelected:event.target.value,
-      gearTypeOptions:gearTypeOptions,
-      gearDescriptionOptions:gearDescriptionOptions
     });
   }
   onSelectType(event){
@@ -97,7 +97,8 @@ class AddGear extends Component {
       gearType,
       gearPrice,
       gearDescription,
-      gearCondition
+      gearCondition,
+      barcode
     } = this.state;
     fetch('/api/addgear', {
         method: 'POST',
@@ -110,7 +111,8 @@ class AddGear extends Component {
           gearType: gearType,
           gearPrice: gearPrice,
           gearDescription: gearDescription,
-          gearCondition: gearCondition
+          gearCondition: gearCondition,
+          barcode: barcode
         })
       }).then(res => res.json())
       .then(json => {
@@ -121,7 +123,8 @@ class AddGear extends Component {
             gearType: '',
             gearPrice:'',
             gearDescription:'',
-            gearCondition: ''
+            gearCondition: '',
+            barcode:''
           })
         } else {
           this.setState({
@@ -135,7 +138,7 @@ class AddGear extends Component {
      gearData,gearType,
      gearPrice,gearOptions,
      gearDescription,
-     gearTypeOptions, gearDescriptionOptions, gearCondition} =this.state;
+     gearTypeOptions, gearDescriptionOptions, gearCondition, barcode} =this.state;
     if(loggedIn ){
      return(
       <div class="form-style-5">
@@ -152,19 +155,11 @@ class AddGear extends Component {
   }
 </select> 
 <label >Brand/Model:</label>
-<select onChange ={this.onSelectType}  value={gearType}>
-  <option value=""></option>
-  {
-    (gearTypeOptions)
-  }
-</select>
+<input type="text" onChange ={this.onSelectType}  value={gearType}/>
+<label >Barcode:</label>
+<input type="text" onChange ={this.onChangeBarcode}  value={barcode}/>
 <label >Description:</label>
-<select onChange ={this.onSelectDescription}  value={gearDescription}>
-  <option value=""></option>
-  {
-    (gearDescriptionOptions)
-  }
-</select>
+<input type="text" onChange ={this.onSelectDescription}  value={gearDescription}/>
 <label  class= "gearConditionLabel">Condition:</label> <label class="quantityLabel" >Price:</label>
 <select id="0" class="gearCondition" onChange ={this.onSelectCondition}  value={gearCondition}>
   <option value=""></option>
