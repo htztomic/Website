@@ -98,7 +98,7 @@ class Header extends Component {
     </button>
     <div class="dropdown-content">
       <a href="/Forms/Checkout">Checkout Gear</a>
-      <a href="/Forms/AddGear">Add Gear</a>
+      <a href="/Forms/AddGear">Add Gear to Database</a>
       <a href="/Forms/AddMember">Add Member</a>
       <a href="/Forms/ReturnGear">Return Gear</a>
     </div>

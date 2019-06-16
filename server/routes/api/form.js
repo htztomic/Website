@@ -465,7 +465,8 @@ module.exports = (app) => {
           },{$set:{comment:comment,gearInfo}}, null);
         }
       }
-      await GearCheckout.findOneAndUpdate({
+      else{
+        await GearCheckout.findOneAndUpdate({
           _id: checkoutId
         }, {
           $set: {
@@ -473,6 +474,7 @@ module.exports = (app) => {
           }
         },
         null);
+      }
       return res.send({
         success: true,
         message: 'Gear returned!'

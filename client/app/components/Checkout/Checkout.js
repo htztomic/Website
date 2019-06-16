@@ -397,10 +397,11 @@ class Checkout extends Component {
     if(loggedIn){
      return(
                <div class="form-style-5">
-{
-  (errorMessage) ? (<label >{errorMessage}</label>) :(null)
-}
+
 <form>
+{
+  (errorMessage) ? (<label class='error'  >{errorMessage}</label>) :(null)
+}
 <fieldset>
 <legend><span class="number">1</span> Member Info</legend>
 <input type="text" value={firstName} onChange={this.onChangeFirstName} placeholder="First Name *"/>
